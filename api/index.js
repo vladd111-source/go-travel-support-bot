@@ -1,10 +1,19 @@
 export default async function handler(req, res) {
-  if (req.method === "POST") {
-    const { message } = req.body;
-    const chatId = message?.chat?.id;
-    const text = message?.text?.toLowerCase();
+  if (req.method !== "POST") {
+    return res.status(405).send("Method Not Allowed");
+  }
 
-    const helpText = `❓ Поддержка Go Travel:
+  const { message } = req.body;
+
+  if (!message) {
+    console.log("Нет message в теле запроса");
+    return res.status(200).send("No message");
+  }
+
+  const chatId = message.chat?.id;
+  const text = message.text?.toLowerCase() || "";
+
+  const helpText = `❓ Поддержка Go Travel:
 
 — Частые вопросы:
 • Как забронировать отель?
@@ -13,6 +22,7 @@ export default async function handler(req, res) {
 
 📬 Напиши менеджеру: @your_manager_username`;
 
+  try {
     if (chatId) {
       await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -21,8 +31,9 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).send("ok");
+    res.status(200).send("ok");
+  } catch (error) {
+    console.error("❌ Ошибка отправки сообщения:", error);
+    res.status(500).send("Error");
   }
-
-  res.status(405).send("Method Not Allowed");
 }
