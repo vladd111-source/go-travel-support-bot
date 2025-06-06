@@ -13,6 +13,18 @@ export default async function handler(req, res) {
   const chatId = message.chat?.id;
   const text = message.text?.toLowerCase() || "";
 
+  const firstName = message.from?.first_name || "";
+  const lastName = message.from?.last_name || "";
+  const username = message.from?.username || "";
+  const userId = message.from?.id;
+
+  // 🔍 Логирование
+  console.log("🆕 Запрос в поддержку от:");
+  console.log(`👤 Имя: ${firstName} ${lastName}`);
+  console.log(`🔗 Username: @${username}`);
+  console.log(`🆔 ID: ${userId}`);
+  console.log(`💬 Сообщение: ${text}`);
+
   const helpText = `❓ <b>Поддержка Go Travel</b>:
 
 <b>— Частые вопросы:</b>
@@ -36,7 +48,7 @@ export default async function handler(req, res) {
               [
                 {
                   text: "📬 Написать менеджеру",
-                  url: "https://t.me/Parshin_Alex" // 🔁 Замени на актуальный username
+                  url: "https://t.me/Parshin_Alex" // ✅ Замени при необходимости
                 }
               ]
             ]
