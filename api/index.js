@@ -36,7 +36,7 @@ export default async function handler(req, res) {
               [
                 {
                   text: "📬 Написать менеджеру",
-                  url: "https://t.me/your_manager_username" // 🔁 Замени на актуальный username
+                  url: "https://t.me/Parshin_Alex" // 🔁 Замени на актуальный username
                 }
               ]
             ]
