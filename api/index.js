@@ -39,8 +39,34 @@ export default async function handler(req, res) {
       return res.status(200).send("No chat ID");
     }
 
+    // ✅ Обработка перехода по ссылке start=user_123456789
+    if (text.startsWith("/start user_")) {
+      const targetUserId = text.split("_")[1];
+
+      await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: process.env.MANAGER_CHAT_ID,
+          text: `📥 Пользователь нажал "Написать менеджеру":\n\n👤 <b>${firstName} ${lastName}</b>\n🔗 @${username || "без username"}\n🆔 <code>${targetUserId}</code>`,
+          parse_mode: "HTML",
+        }),
+      });
+
+      await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: "✅ Спасибо! Менеджер скоро с вами свяжется.",
+        }),
+      });
+
+      return res.status(200).send("ok");
+    }
+
+    // Стандартный старт
     if (text === "/start") {
-      // Приветствие + кнопка
       await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,35 +79,37 @@ export default async function handler(req, res) {
               [
                 {
                   text: "📬 Написать менеджеру",
-                  url: "https://t.me/Parshin_Alex" // 🔁 Подставь актуального менеджера
+                  url: `https://t.me/GoTravelSupportBot?start=user_${userId}`
                 }
               ]
             ]
           }
         }),
       });
-    } else {
-      // Ответ пользователю
-      await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: "✉️ Спасибо за сообщение! Мы ответим как можно скорее.",
-        }),
-      });
 
-      // Уведомление менеджеру
-      await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: process.env.MANAGER_CHAT_ID,
-          text: `📨 <b>Новое сообщение от пользователя</b>:\n\n👤 <b>${firstName} ${lastName}</b>\n🔗 @${username || "без username"}\n🆔 <code>${userId}</code>\n\n💬 <i>${message.text}</i>`,
-          parse_mode: "HTML",
-        }),
-      });
+      return res.status(200).send("ok");
     }
+
+    // Ответ пользователю
+    await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: "✉️ Спасибо за сообщение! Мы ответим как можно скорее.",
+      }),
+    });
+
+    // Уведомление менеджеру
+    await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: process.env.MANAGER_CHAT_ID,
+        text: `📨 <b>Новое сообщение от пользователя</b>:\n\n👤 <b>${firstName} ${lastName}</b>\n🔗 @${username || "без username"}\n🆔 <code>${userId}</code>\n\n💬 <i>${message.text}</i>`,
+        parse_mode: "HTML",
+      }),
+    });
 
     res.status(200).send("ok");
   } catch (error) {
