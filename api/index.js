@@ -25,17 +25,18 @@ export default async function handler(req, res) {
   console.log(`🆔 ID: ${userId}`);
   console.log(`💬 Сообщение: ${text}`);
 
-  const helpText = `❓ <b>Поддержка Go Travel</b>:
+  const helpText = `❓ <b>Поддержка Go Travel</b>
 
 <b>— Частые вопросы:</b>
 • Как забронировать отель?
 • Как сохранить в избранное?
 • Почему не загружается перелёт?
 
-👇 Нажми кнопку ниже, чтобы написать менеджеру:`;
+✍️ Напиши свой вопрос, и мы ответим как можно скорее.`;
 
   try {
     if (chatId) {
+      // Отправляем FAQ + призыв к действию
       await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,18 +44,28 @@ export default async function handler(req, res) {
           chat_id: chatId,
           text: helpText,
           parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "📬 Написать менеджеру",
-                  url: "https://t.me/Parshin_Alex" // ✅ Замени при необходимости
-                }
-              ]
-            ]
-          }
         }),
       });
+
+      // Уведомление менеджера в ЛС (если нужно):
+      const managerChatId = process.env.MANAGER_CHAT_ID; // задаётся в .env
+      if (managerChatId) {
+        const forwardText = `📥 Новый вопрос в поддержку:
+
+👤 ${firstName} ${lastName} (@${username})
+🆔 ID: ${userId}
+
+💬 Сообщение: ${text}`;
+
+        await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: managerChatId,
+            text: forwardText,
+          }),
+        });
+      }
     }
 
     res.status(200).send("ok");
